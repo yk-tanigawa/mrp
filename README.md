@@ -1,13 +1,13 @@
 # Multiple Rare-variants and Phenotypes
 
-This directory contains code and documentation for the [Multiple Rare-variants and Phenotypes method](https://www.biorxiv.org/content/10.1101/257162v7) by Venkataraman *et. al.*. The repository is maintained by Guhan Ram Venkataraman (GitHub: guhanrv).
+This directory contains code and documentation for the [Multiple Rare-variants and Phenotypes (MRP) method](https://doi.org/10.1016/j.ajhg.2021.11.005) by Venkataraman *et al.*. The repository is maintained by Guhan Ram Venkataraman (GitHub: guhanrv).
 
 ## Script details and options
 
 A full list of options can be obtained by running `python3 mrp_production.py -h`, and the output is replicated here for reference:
 
 ```{bash}
-(base) user$ python3 mrp_production.py -h
+(base) user$ python3 mrp.py -h
 usage: mrp.py [-h] --file MAP_FILE --metadata_path METADATA_PATH --build
               {hg19,hg38}
               [--chrom {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,Y} [{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,Y} ...]]
@@ -74,7 +74,7 @@ optional arguments:
                         variant set(s) to consider.
                                  options: proximal coding [pcv],
                                           protein-altering [pav],
-                                          protein truncating [ptv],
+                                          protein-truncating [ptv],
                                           all variants [all]
                                           (default: ptv). can run multiple.
   --maf_thresh MAF_THRESHES [MAF_THRESHES ...]
@@ -135,7 +135,7 @@ These groupings and their sigma values can be changed in the `set_sigmas` method
 
 ## Downloading variant metadata files
 
-We provide variant metadata files for both UK Biobank [array](https://biobankengine.stanford.edu/static/ukb_cal-consequence_wb_maf_gene_ld_indep_mpc_pli.tsv.gz) and [exome](https://biobankengine.stanford.edu/static/ukb_exm_oqfe-consequence_wb_maf_gene_ld_indep_mpc_pli.tsv.gz) for direct download. We generated these files as described in [Venkataraman et. al.](https://www.biorxiv.org/content/10.1101/257162v7).
+We provide variant metadata files for both UK Biobank [array](https://biobankengine.stanford.edu/static/ukb_cal-consequence_wb_maf_gene_ld_indep_mpc_pli.tsv.gz) and [exome](https://biobankengine.stanford.edu/static/ukb_exm_oqfe-consequence_wb_maf_gene_ld_indep_mpc_pli.tsv.gz) for direct download. We generated these files as described in [Venkataraman et al.](https://doi.org/10.1016/j.ajhg.2021.11.005).
 
 ## Example use cases
 
@@ -145,13 +145,13 @@ White British:
 |       Trait     |     Array     |     Exome    |
 | --------------  | ------------- | ------------ |
 | LDL Cholesterol | https://biobankengine.stanford.edu/static/wb_ldl_array.glm.linear.gz  | https://biobankengine.stanford.edu/static/wb_ldl_exome.glm.linear.gz |
-| Triglycerides  | https://biobankengine.stanford.edu/static/wb_tg_array.glm.linear.gz | https://biobankengine.stanford.edu/static/wb_tg_exome.glm.linear.gz |
+| Triglycerides   | https://biobankengine.stanford.edu/static/wb_tg_array.glm.linear.gz   | https://biobankengine.stanford.edu/static/wb_tg_exome.glm.linear.gz |
 
-non-British white:
+Non-British white:
 |       Trait     |     Array     |     Exome    |
 | --------------  | ------------- | ------------ |
 | LDL Cholesterol | https://biobankengine.stanford.edu/static/nbw_ldl_array.glm.linear.gz  | https://biobankengine.stanford.edu/static/nbw_ldl_exome.glm.linear.gz |
-| Triglycerides  | https://biobankengine.stanford.edu/static/nbw_tg_array.glm.linear.gz | https://biobankengine.stanford.edu/static/nbw_tg_exome.glm.linear.gz |
+| Triglycerides   | https://biobankengine.stanford.edu/static/nbw_tg_array.glm.linear.gz   | https://biobankengine.stanford.edu/static/nbw_tg_exome.glm.linear.gz |
 
 ### Single-trait, single-population gene-based analysis
 
@@ -210,3 +210,8 @@ As mentioned in the `-h` command, MRP can do many things, like incorporate a pri
 ### Results set
 
 The full set of significant (log<sub>10</sub> BF >= 5) results can be found at [the Global Biobank Engine's 'Exomes' tab](https://biobankengine.stanford.edu/RIVAS_HG38/mrpgene/all).
+
+
+## References
+
+- G. R. Venkataraman, C. DeBoever, Y. Tanigawa, M. Aguirre, A. G. Ioannidis, H. Mostafavi, C. C. A. Spencer, T. Poterba, C. D. Bustamante, M. J. Daly, M. Pirinen, M. A. Rivas, Bayesian model comparison for rare-variant association studies. Am J Hum Genet. 108(12), 2354-2367 (2021). https://doi.org/10.1016/j.ajhg.2021.11.005
