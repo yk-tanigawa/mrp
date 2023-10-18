@@ -1728,26 +1728,30 @@ def print_banner():
 
     """
 
-    print("")
-    print(Fore.RED + " __  __ ____  ____")
-    print("|  \/  |  _ \|  _ \\")
-    print("| |\/| | |_) | |_) |")
-    print("| |  | |  _ <|  __/ ")
-    print("|_|  |_|_| \_\_|  " + Style.RESET_ALL)
-    print("")
-    print(Fore.GREEN + "Production Author:" + Style.RESET_ALL)
-    print("Guhan Ram Venkataraman, B.S.H.")
-    print("Ph.D. Candidate | Biomedical Informatics")
-    print("")
-    print(Fore.GREEN + "Contact:" + Style.RESET_ALL)
-    print("Email: guhan@stanford.edu")
-    print(
-        "URL: https://github.com/rivas-lab/mrp"
-    )
-    print("")
-    print(Fore.GREEN + "Methods Developers:" + Style.RESET_ALL)
-    print("Manuel A. Rivas, Ph.D.; Matti Pirinen, Ph.D.")
-    print("Rivas Lab | Stanford University")
+    banner_string = f"""{Fore.RED}
+    __  __ ____  ____
+    |  \\/  |  _ \\|  _ \\
+    | |\\/| | |_) | |_) |
+    | |  | |  _ <|  __/
+    |_|  |_|_| \\_\\_|{Style.RESET_ALL}
+
+    {Fore.GREEN}Production Author:{Style.RESET_ALL}
+    Guhan Ram Venkataraman, Ph.D.
+
+    {Fore.GREEN}Contact:{Style.RESET_ALL}
+    Email: guhan@stanford.edu
+    URL: https://github.com/rivas-lab/mrp
+
+    {Fore.GREEN}Methods Developers:{Style.RESET_ALL}
+    Manuel A. Rivas, Ph.D.; Matti Pirinen, Ph.D.
+    Rivas Lab | Stanford University
+
+    {Fore.GREEN}References:{Style.RESET_ALL}
+    Venkataraman, et al. Am J Hum Genet. (2021).
+    https://doi.org/10.1016/j.ajhg.2021.11.005
+    """
+
+    print(banner_string)
 
 
 def return_input_args(args):
