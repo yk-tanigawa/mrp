@@ -117,19 +117,26 @@ optional arguments:
 
 The following groups are how we assign priors (`sigma_m`) to variants: Protein-truncating variants (PTVs), Protein-altering variants (PAVs), proximal coding variants (PCVs), intronic variants (intron), UTR variants (utr), and the other variants ("all" setting above).
 
-`ptv = ["splice_acceptor_variant", "splice_donor_variant", "stop_lost", "stop_gained", "frameshift_variant", "transcript_ablation", "start_lost"]`. By default, PTVs are assigned a spread (sigma) of 0.2.
+- `ptv`
+  - `["splice_acceptor_variant", "splice_donor_variant", "stop_lost", "stop_gained", "frameshift_variant", "transcript_ablation", "start_lost"]`.
+  - By default, PTVs are assigned a spread (sigma) of 0.2.
+- `pav`
+  - `["missense_variant", "splice_region_variant", "protein_altering_variant", "inframe_insertion","inframe_deletion"]`.
+  - By default, PAVs are assigned a spread (sigma) of 0.05.
+- `pcv`
+  - `["stop_retained_variant", "coding_sequence_variant", "incomplete_terminal_codon_variant", "synonymous_variant", "start_retained_variant"]`.
+  - By default, PCVs are assigned a spread (sigma) of 0.03.
+- `intron`
+  - `["intron_variant"]`.
+  - By default, intronic variants are assigned a spread (sigma) of 0.03.
+- `utr`
+  - `["5_prime_UTR_variant", "3_prime_UTR_variant"]`.
+  - By default, UTR variants are assigned a spread (sigma) of 0.03.
+- `others`
+  - `["regulatory_region_variant", "non_coding_transcript_variant", "mature_miRNA_variant", "NMD_transcript_variant", "intergenic_variant", "upstream_gene_variant", "downstream_gene_variant", "TF_binding_site_variant", "non_coding_transcript_exon_variant", "regulatory_region_ablation", "TFBS_ablation", "NA"]`.
+  - By default, the other variants are assigned a spread (sigma) of 0.02.
 
-`pav = ["missense_variant", "splice_region_variant", "protein_altering_variant", "inframe_insertion","inframe_deletion"]`. By default, PAVs are assigned a spread (sigma) of 0.05.
-
-`pcv = ["stop_retained_variant", "coding_sequence_variant", "incomplete_terminal_codon_variant", "synonymous_variant", "start_retained_variant"]`. By default, PCVs are assigned a spread (sigma) of 0.03.
-
-`intron = ["intron_variant"]`. By default, intronic variants are assigned a spread (sigma) of 0.03.
-
-`utr = ["5_prime_UTR_variant", "3_prime_UTR_variant"]`. By default, UTR variants are assigned a spread (sigma) of 0.03.
-
-`others = ["regulatory_region_variant", "non_coding_transcript_variant", "mature_miRNA_variant", "NMD_transcript_variant", "intergenic_variant", "upstream_gene_variant", "downstream_gene_variant", "TF_binding_site_variant", "non_coding_transcript_exon_variant", "regulatory_region_ablation", "TFBS_ablation", "NA"]`. By default, the other variants are assigned a spread (sigma) of 0.02.
-
-These groupings and their sigma values can be changed in the `set_sigmas` method within [`mrp.py`](https://github.com/rivas-lab/mrp/blob/master/mrp.py).
+These groupings and their sigma values can be changed in the `get_sigma_and_consequence_categories` and `set_sigmas` methods within [`mrp.py`](https://github.com/rivas-lab/mrp/blob/master/mrp.py).
 
 **IMPORTANT NOTE:** If `pav` is selected as the analysis type, then PAVs **and** PTVs are included in the analysis (cascading down). If `pcv` is selected, then PCVs, PAVs **and** PTVs are all included.
 

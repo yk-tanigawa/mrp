@@ -967,6 +967,7 @@ def get_sigma_and_consequence_categories():
     }
     consequence_categories = {
         'ptv': [
+            "PTVs",
             "splice_acceptor_variant",
             "splice_donor_variant",
             "stop_lost",
@@ -976,6 +977,7 @@ def get_sigma_and_consequence_categories():
             "start_lost",
         ],
         'pav': [
+            "PAVs",
             "missense_variant",
             "splice_region_variant",
             "protein_altering_variant",
@@ -983,6 +985,7 @@ def get_sigma_and_consequence_categories():
             "inframe_deletion",
         ],
         'pcv': [
+            "PCVs",
             "stop_retained_variant",
             "coding_sequence_variant",
             "incomplete_terminal_codon_variant",
@@ -990,13 +993,16 @@ def get_sigma_and_consequence_categories():
             "start_retained_variant",
         ],
         'intron': [
+            "Intronic",
             "intron_variant",
         ],
         'utr': [
+            "UTR",
             "5_prime_UTR_variant",
             "3_prime_UTR_variant",
         ],
         'others': [
+            "Others",
             "regulatory_region_variant",
             "non_coding_transcript_variant",
             "mature_miRNA_variant",
@@ -1344,6 +1350,7 @@ def filter_for_err_corr(df, map_file):
     df = df[(df.maf >= 0.01) & (df.ld_indep == "True")]
     df = df.dropna(axis=1, how="all")
     null_variants = [
+        "Others",
         "regulatory_region_variant",
         "non_coding_transcript_variant",
         "mature_miRNA_variant",
@@ -1592,6 +1599,7 @@ def read_in_summary_stat(file_path, build, chrom):
     df_top = pd.read_csv(file_path, sep="\t", nrows=0)
     se_col = "LOG(OR)_SE" if "LOG(OR)_SE" in df_top.columns else "SE"
     beta_col = "BETA" if "BETA" in df_top.columns else "OR"
+    pval_col = "NEG_LOG10_P" if "NEG_LOG10_P" in df_top.columns else ("LOG10_P" if "LOG10_P" in df_top.columns else "P")
 
     dtypes = {
         "#CHROM": str,
@@ -1600,7 +1608,7 @@ def read_in_summary_stat(file_path, build, chrom):
         "ALT": str,
         beta_col: float,
         se_col: float,
-        "P": str,
+        pval_col: str,
     }
     if('ERRCODE' in df_top.columns):
         dtypes.update({'ERRCODE': str})
@@ -1618,6 +1626,8 @@ def read_in_summary_stat(file_path, build, chrom):
     if beta_col == "OR":
         df["BETA"] = np.log(df["OR"].astype("float64"))
         df = df.drop(columns=["OR"])
+    if pval_col == "LOG10_P":
+        df.rename(columns={"LOG10_P": "NEG_LOG10_P"}, inplace=True)
     if chrom:
         df = df[df['#CHROM'].isin(chrom)]
     # Filter for SE as you read it in
@@ -1631,7 +1641,10 @@ def read_in_summary_stat(file_path, build, chrom):
         (df["CHROM"] == '6') &
         (df["POS"].between( HLA_region[build][0], HLA_region[build][1] ))
     )]
-    df["P"] = df["P"].astype(float)
+    if pval_col == "P":
+        df["P"] = df["P"].astype(float)
+    else:
+        df["P"] = 10 ** (-1 * df["NEG_LOG10_P"].astype(float))
     df.insert(
         loc=0,
         column="V",
