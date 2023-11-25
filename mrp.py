@@ -298,7 +298,7 @@ def return_BF(
             + 0.5 * beta.T.dot(v_beta_inv.dot(beta))
             - 0.5 * (((beta - mu).T).dot(fat_middle)).dot(beta - mu)
         )
-        logBF = float(np.array(logBF))
+        logBF = float(np.array(logBF).item())
         log10BF = logBF / np.log(10)
         posterior_probs = (
             compute_posterior_probs(log10BF, prior_odds_list) if prior_odds_list else []
