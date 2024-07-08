@@ -74,10 +74,11 @@ def return_input_args(args):
         map_file = pd.read_csv(
             args.map_file,
             sep="\t",
-            dtype={"path": str, "pop": str, "pheno": str, "R_phen": str},
+            dtype={"path": str, "pop": str, "pheno": str, "R_phen": bool},
         )
     except:
         raise IOError("File specified in --file does not exist.")
+
     df, pops, phenos, S, K = read_in_summary_stats(
         map_file, args.metadata_path, args.exclude, args.sigma_m_types, args.build, args.chrom
     )
@@ -388,13 +389,13 @@ def mrp_main():
 
         warnings.filterwarnings("ignore", category=RRuntimeWarning)
 
+    out_folder = args.out_folder[0] if args.out_folder else os.getcwd()
+    out_filename = args.out_filename[0] if args.out_filename else []
     df, map_file, S, K, pops, phenos, R_study_list = return_input_args(args)
     if args.filter_ld_indep:
-        df = df[df["ld_indep"] == "True"]
+        df = df.loc[df["ld_indep"], ]
     for se_thresh in args.se_threshes:
         se_df = se_filter(df, se_thresh, pops, phenos)
-        out_folder = args.out_folder[0] if args.out_folder else os.getcwd()
-        out_filename = args.out_filename[0] if args.out_filename else []
         err_corr, R_phen = return_err_and_R_phen(
             se_df, pops, phenos, len(pops), len(phenos), map_file
         )

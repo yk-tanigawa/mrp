@@ -442,14 +442,14 @@ def calculate_all_params(
     subset_filter_col = "gene_symbol" if agg_type == "gene" else "V"
     subset_df = df.loc[np.in1d(df[subset_filter_col], [key]), ]
     if sigma_m_type == "sigma_m_mpc_pli":
-        num_variants_pli = np.sum(np.logical_and(
+        num_variants_pli = np.sum(reduce(np.logical_and, [
             np.in1d(subset_df['category'], ['ptv']),
-            np.in1d(subset_df['pLI'], ['True'])
-        ))
-        num_variants_mpc = np.sum(np.logical_and(
+            subset_df['pLI']
+        ]))
+        num_variants_mpc = np.sum(reduce(np.logical_and, [
             np.in1d(subset_df['category'], ['pav']),
             (subset_df['MPC'] >= 1)
-        ))
+        ]))
     else:
         num_variants_mpc, num_variants_pli = None, None
     sigma_m = np.array(subset_df[sigma_m_type])
@@ -1036,14 +1036,14 @@ def get_sigma_m_var_df():
     ))
 
 
-def compute_sigma_m_mpc_pli(sigma_m_var, category, pLI, MPC):
+def compute_sigma_m_mpc_pli(sigma_m_var, category, pLI:bool, MPC):
 
     """
     Computes sigma_m_mpc_pli value
     """
     if(sigma_m_var is None):
         return None
-    elif((category == 'ptv') and (pLI == 'True')):
+    elif((category == 'ptv') and pLI):
         return(2 * sigma_m_var)
     elif((category == 'pav') and (MPC >= 1)):
         return(MPC * sigma_m_var)
@@ -1219,7 +1219,7 @@ def filter_for_phen_corr(df, map_file):
 
     """
 
-    files_to_use = map_file[map_file["R_phen"] == "True"]
+    files_to_use = map_file[map_file["R_phen"]]
     if len(files_to_use) == 0:
         return [], []
     pop_pheno_tuples = zip(list(files_to_use["study"]), list(files_to_use["pheno"]))
@@ -1230,7 +1230,10 @@ def filter_for_phen_corr(df, map_file):
         )
     df = df[cols_to_keep]
     # Get only LD-independent, common variants
-    df = df[(df.maf >= 0.01) & (df.ld_indep == "True")]
+    df = df.loc[reduce(np.logical_and, [
+            df["ld_indep"],
+            df.maf >= 0.01
+    ]), ]
     df = df.dropna(axis=1, how="all")
     df = df.dropna()
     return df, pop_pheno_tuples
@@ -1333,16 +1336,7 @@ def filter_for_err_corr(df, map_file):
     print("")
     print(Fore.MAGENTA + "Building R_phen and matrix of correlations of errors..." + Style.RESET_ALL)
     print("")
-    pop_pheno_tuples = zip(list(map_file["study"]), list(map_file["pheno"]))
-    cols_to_keep = collections.deque(["V", "maf", "ld_indep", "most_severe_consequence"])
-    for col_type in "BETA_", "P_":
-        cols_to_keep.extend(
-            [col_type + pop + "_" + pheno for pop, pheno in pop_pheno_tuples]
-        )
-    df = df[cols_to_keep]
-    # Get only LD-independent, common variants
-    df = df[(df.maf >= 0.01) & (df.ld_indep == "True")]
-    df = df.dropna(axis=1, how="all")
+
     null_variants = [
         "Others",
         "regulatory_region_variant",
@@ -1358,9 +1352,21 @@ def filter_for_err_corr(df, map_file):
         "TFBS_ablation",
         "NA",
     ]
-    # Get only null variants to build err_corr
-    if len(df) != 0:
-        df = df[df.most_severe_consequence.isin(null_variants)]
+
+    pop_pheno_tuples = zip(list(map_file["study"]), list(map_file["pheno"]))
+    cols_to_keep = collections.deque(["V", "maf", "ld_indep", "most_severe_consequence"])
+    for col_type in "BETA_", "P_":
+        cols_to_keep.extend(
+            [col_type + pop + "_" + pheno for pop, pheno in pop_pheno_tuples]
+        )
+    df = df[cols_to_keep]
+    # Get only LD-independent, common, null variants to build err_corr
+    df = df.loc[reduce(np.logical_and, [
+            df["ld_indep"],
+            df.maf >= 0.01,
+            np.in1d(df["most_severe_consequence"], null_variants)
+    ]), ]
+    df = df.dropna(axis=1, how="all")
     return df
 
 
@@ -1502,23 +1508,16 @@ def check_map_file(map_file):
     """
     if map_file.isnull().values.sum() > 0:
         raise ValueError("NaNs in map file.")
-    file_paths = np.unique(list(map_file["path"]))
-    booleans = np.unique(list(map_file["R_phen"]))
-    valid_booleans = ["TRUE", "FALSE"]
-    if len(file_paths) < len(map_file):
+    unique_file_paths = np.unique(list(map_file["path"]))
+    if len(unique_file_paths) < len(map_file):
         raise ValueError("File specified in map file contains duplicate path entries.")
-    for file_path in file_paths:
+    for file_path in unique_file_paths:
         if not os.path.exists(file_path):
             raise IOError("File " + file_path + ", listed in map file does not exist.")
     if (map_file.groupby(["study", "pheno"]).size() > 1).sum() > 0:
         raise ValueError(
             "Multiple summary statistic files specified for a (study, phenotype) tuple."
         )
-    for boolean in booleans:
-        if boolean.upper() not in valid_booleans:
-            raise ValueError(
-                "One or more booleans provided in the R_phen column of the map file is not a case-insensitive TRUE/FALSE."
-            )
     pops = sorted(list(set(map_file["study"])))
     phenos = sorted(list(set(map_file["pheno"])))
     S = len(pops)
@@ -1553,8 +1552,8 @@ def merge_dfs(sumstat_files, metadata_path, sigma_m_types):
         "maf": float,
         "gene_symbol": str,
         "MPC": float,
-        "pLI": str,
-        "ld_indep": str,
+        "pLI": bool,
+        "ld_indep": bool,
     }
     metadata = pd.read_csv(
         metadata_path,
