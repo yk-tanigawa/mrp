@@ -874,7 +874,7 @@ def loop_through_parameters(
                 analysis_bf_dfs = collections.deque([])
                 for sigma_m_type in sigma_m_types:
                     sigma_m_type_bf_dfs = collections.deque([])
-                    for R_study, R_study_model in zip(R_study_list, R_study_models):
+                    for R_study, R_study_model in list(zip(R_study_list, R_study_models)):
                         for R_var_model in R_var_models:
                             print_params(
                                 analysis,
@@ -1158,8 +1158,9 @@ def calculate_phen(a, b, pop1, pheno1, pop2, pheno2, df, pop_pheno_tuples):
         return np.nan
     else:
         # if this combination of pop, pheno doesn't exist in the map file, then nan
-        if ((pop1, pheno1) in pop_pheno_tuples) and (
-            (pop2, pheno2) in pop_pheno_tuples
+        if (
+            ((pop1, pheno1) in pop_pheno_tuples) and
+            ((pop2, pheno2) in pop_pheno_tuples)
         ):
             phen_beta1, phen_beta2 = get_betas(df, pop1, pheno1, pop2, pheno2, "sig")
             if phen_beta1 is not None:
@@ -1222,7 +1223,7 @@ def filter_for_phen_corr(df, map_file):
     files_to_use = map_file[map_file["R_phen"]]
     if len(files_to_use) == 0:
         return [], []
-    pop_pheno_tuples = zip(list(files_to_use["study"]), list(files_to_use["pheno"]))
+    pop_pheno_tuples = list(zip(list(files_to_use["study"]), list(files_to_use["pheno"])))
     cols_to_keep = collections.deque(["V", "maf", "ld_indep"])
     for col_type in "BETA_", "P_":
         cols_to_keep.extend(
@@ -1353,7 +1354,7 @@ def filter_for_err_corr(df, map_file):
         "NA",
     ]
 
-    pop_pheno_tuples = zip(list(map_file["study"]), list(map_file["pheno"]))
+    pop_pheno_tuples = list(zip(list(map_file["study"]), list(map_file["pheno"])))
     cols_to_keep = collections.deque(["V", "maf", "ld_indep", "most_severe_consequence"])
     for col_type in "BETA_", "P_":
         cols_to_keep.extend(
