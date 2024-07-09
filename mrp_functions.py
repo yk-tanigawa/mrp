@@ -1,5 +1,5 @@
 from __future__ import division
-import os, itertools, collections, gc
+import os, itertools, collections, gc, warnings
 from functools import partial, reduce
 
 
@@ -8,6 +8,19 @@ import numpy as np
 import numpy.matlib
 import scipy.stats
 from colorama import Fore, Style
+
+
+import rpy2
+import rpy2.robjects as robjects
+import rpy2.robjects.numpy2ri
+from rpy2.rinterface import RRuntimeWarning
+
+
+rpy2.robjects.numpy2ri.activate()
+
+
+warnings.filterwarnings("ignore", category=RRuntimeWarning)
+
 
 def is_pos_def_and_full_rank(X, tol=0.99):
 
@@ -85,8 +98,11 @@ def farebrother(quad_T, d, fb):
 
     """
 
-    res = fb(quad_T, d)
-    return np.asarray(res)[0]
+    try:
+        res = fb(quad_T, d)
+        return np.asarray(res)[0]
+    except (TypeError, ValueError) as e:
+        print(f"Conversion error: {e}")
 
 
 def davies(quad_T, d, dm):
@@ -105,8 +121,11 @@ def davies(quad_T, d, dm):
 
     """
 
-    res = dm(quad_T, d)
-    return np.asarray(res)[0]
+    try:
+        res = dm(quad_T, d)
+        return np.asarray(res)[0]
+    except (TypeError, ValueError) as e:
+        print(f"Conversion error: {e}")
 
 
 def imhof(quad_T, d, im):
@@ -125,8 +144,11 @@ def imhof(quad_T, d, im):
 
     """
 
-    res = im(quad_T, d)
-    return np.asarray(res)[0]
+    try:
+        res = im(quad_T, d)
+        return np.asarray(res)[0]
+    except (TypeError, ValueError) as e:
+        print(f"Conversion error: {e}")
 
 
 def initialize_r_objects():
@@ -146,7 +168,7 @@ def initialize_r_objects():
     require(MASS)
     require(CompQuadForm)
     farebrother.method <- function(quadT, d, h = rep(1, length(d)), delta = rep(0, length(d)), maxiter = 100000, epsilon = 10^-16, type = 1) {
-        return(farebrother(quadT, d, h, delta, maxit = as.numeric(maxiter), eps = as.numeric(epsilon), mode = as.numeric(type))$Qq)
+        return(CompQuadForm::farebrother(quadT, d, h, delta, maxit = as.numeric(maxiter), eps = as.numeric(epsilon), mode = as.numeric(type))$Qq)
     }
     """)
     robjects.r(
@@ -154,7 +176,7 @@ def initialize_r_objects():
     require(MASS)
     require(CompQuadForm)
     imhof.method <- function(quadT, d, h = rep(1, length(d)), delta = rep(0, length(d)), epsilon = 10^-16, lim = 10000) {
-        return(imhof(quadT, d, h, delta, epsabs = as.numeric(epsilon), epsrel = as.numeric(epsilon), limit=as.numeric(lim))$Qq)
+        return(CompQuadForm::imhof(quadT, d, h, delta, epsabs = as.numeric(epsilon), epsrel = as.numeric(epsilon), limit=as.numeric(lim))$Qq)
     }
     """)
     robjects.r(
@@ -162,7 +184,7 @@ def initialize_r_objects():
     require(MASS)
     require(CompQuadForm)
     davies.method <- function(quadT, d, h = rep(1, length(d)), delta = rep(0, length(d)), sig = 0, limit = 10000, accuracy = 0.0001) {
-        return(davies(quadT, d, h, delta, sigma=as.numeric(sig), lim = as.numeric(limit), acc = as.numeric(accuracy))$Qq)
+        return(CompQuadForm::davies(quadT, d, h, delta, sigma=as.numeric(sig), lim = as.numeric(limit), acc = as.numeric(accuracy))$Qq)
     }
     """)
     fb = robjects.globalenv["farebrother.method"]
@@ -218,9 +240,12 @@ def return_BF_pvals(beta, U, v_beta, v_beta_inv, fb, dm, im, methods):
             p_value = davies(quad_T, d, dm)
         elif method == "imhof":
             p_value = imhof(quad_T, d, im)
-        p_value = max(0, min(1, p_value))
+        if p_value is None:
+            p_value = np.nan
+        else:
+            p_value = max(0, min(1, p_value))
         p_values.append(p_value)
-    return p_values
+    return list(p_values)
 
 
 def compute_posterior_probs(log10BF, prior_odds_list):

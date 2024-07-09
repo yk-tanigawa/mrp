@@ -375,19 +375,6 @@ def mrp_main():
             + " as opposed to p-values."
             + Style.RESET_ALL
         )
-        import rpy2
-        import rpy2.robjects as robjects
-        import rpy2.robjects.numpy2ri
-
-        rpy2.robjects.numpy2ri.activate()
-        import rpy2.robjects.packages as rpackages
-        from rpy2.robjects.vectors import StrVector
-        from rpy2.robjects.vectors import ListVector
-        from rpy2.robjects.vectors import FloatVector
-        import warnings
-        from rpy2.rinterface import RRuntimeWarning
-
-        warnings.filterwarnings("ignore", category=RRuntimeWarning)
 
     out_folder = args.out_folder[0] if args.out_folder else os.getcwd()
     out_filename = args.out_filename[0] if args.out_filename else []
